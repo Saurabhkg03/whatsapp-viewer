@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -154,20 +155,23 @@
             font-size: 12.5px;
             box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
             text-transform: capitalize;
-            pointer-events: auto; /* Re-enable if needed */
+            pointer-events: auto;
         }
 
         /* --- MESSAGES LAYOUT & SPACING --- */
         .message-row {
             display: flex;
             width: 100%;
-            margin-bottom: 2px; /* Tight grouping for same sender */
+            margin-bottom: 2px; /* Tight grouping */
             position: relative;
         }
         
-        /* Extra margin when sender changes */
+        /* THIS FIXES THE LEFT/RIGHT ALIGNMENT */
+        .message-row.out { justify-content: flex-end; }
+        .message-row.in { justify-content: flex-start; }
+
         .message-row.first-in-group {
-            margin-top: 12px;
+            margin-top: 10px;
         }
         
         .message-row.system { justify-content: center; margin-top: 10px; margin-bottom: 10px; }
@@ -183,8 +187,9 @@
             box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
         }
 
-        .message-in { background-color: var(--msg-in); align-self: flex-start; }
-        .message-out { background-color: var(--msg-out); align-self: flex-end; }
+        /* Colors and margins for bubbles */
+        .message-in { background-color: var(--msg-in); margin-right: auto; }
+        .message-out { background-color: var(--msg-out); margin-left: auto; }
 
         /* --- WHATSAPP SVG TAILS --- */
         .message-in.tail { border-top-left-radius: 0; }
@@ -217,9 +222,9 @@
         }
 
         .sender-name { font-size: 12.8px; font-weight: 500; margin-bottom: 4px; display: block; }
-        .color-1 { color: #53bdeb; } .color-2 { color: #ff7a7a; } .color-3 { color: #a180ff; }
+        .color-1 { color: #53bdeb; } .color-2 { color: #ff7a7a; } .color-3 { color: #a180ff; } .color-4 { color: #51ca85; }
 
-        .text-content { white-space: pre-wrap; display: inline-block; }
+        .text-content { white-space: pre-wrap; display: inline; }
 
         .timestamp {
             font-size: 11px;
@@ -239,6 +244,7 @@
 </head>
 <body>
 
+    <!-- Upload Screen -->
     <div id="upload-screen">
         <div class="upload-card">
             <h1>WhatsApp Chat Viewer</h1>
@@ -249,6 +255,7 @@
         </div>
     </div>
 
+    <!-- Main Chat UI -->
     <div id="chat-app">
         <div class="header">
             <div class="header-info">
@@ -261,7 +268,8 @@
             </div>
         </div>
         <div class="chat-container" id="chatContainer">
-            </div>
+            <!-- Messages injected here -->
+        </div>
     </div>
 
     <script>
@@ -352,6 +360,8 @@
             if (currentMsg) parsedMessages.push(currentMsg);
 
             sendersList = [...new Set(parsedMessages.filter(m => m.type === 'message').map(m => m.sender))];
+            
+            // Auto-select "Me" correctly
             myName = sendersList.length > 1 ? sendersList[1] : sendersList[0];
 
             meSelector.innerHTML = '';
@@ -404,17 +414,18 @@
                 const isMe = msg.sender === myName;
                 const isFirstInGroup = lastSender !== msg.sender;
                 
-                // Grouping Logic applied via CSS Classes
-                row.className = `message-row ${isFirstInGroup ? 'first-in-group' : ''}`;
+                // ADDED `in` and `out` classes to fix left/right alignment!
+                row.className = `message-row ${isMe ? 'out' : 'in'} ${isFirstInGroup ? 'first-in-group' : ''}`;
                 
                 const bubble = document.createElement('div');
                 bubble.className = `message ${isMe ? 'message-out' : 'message-in'} ${isFirstInGroup ? 'tail' : ''}`;
 
                 let senderHtml = '';
-                if (!isMe && isFirstInGroup && sendersList.length > 2) {
+                // ALWAYS show name for incoming messages if it's the first in the group
+                if (!isMe && isFirstInGroup) {
                     if (!colorMap[msg.sender]) {
                         colorMap[msg.sender] = `color-${colorIndex}`;
-                        colorIndex = colorIndex > 2 ? 1 : colorIndex + 1; 
+                        colorIndex = colorIndex > 3 ? 1 : colorIndex + 1; 
                     }
                     senderHtml = `<span class="sender-name ${colorMap[msg.sender]}">${escapeHtml(msg.sender)}</span>`;
                 }
@@ -470,3 +481,5 @@
     </script>
 </body>
 </html>
+
+```
